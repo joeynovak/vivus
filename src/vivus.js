@@ -246,12 +246,32 @@ Vivus.prototype.setCallback = function (callback) {
  *
  */
 Vivus.prototype.mapping = function () {
-  var i, paths, path, pAttrs, pathObj, totalLength, lengthMeter, timePoint;
+  var groupIndex, pathIndex, pathsInGroup, path, pAttrs, pathObj, totalLength, lengthMeter, timePoint;
   timePoint = totalLength = lengthMeter = 0;
-  paths = this.el.querySelectorAll('path');
 
-  for (i = 0; i < paths.length; i++) {
-    path = paths[i];
+  var group, description, descriptionData, pathIndexInGroup, objectKey;
+  var groups = this.el.querySelectorAll('g');
+
+  for (groupIndex = 0; groupIndex < groups.length; groupIndex++){
+    group = groups[groupIndex];
+    if(group.firstElementChild.tagName == 'desc'){
+      descriptionData = JSON.parse(group.firstElementChild.innerHTML);
+      pathsInGroup = group.querySelectorAll("path");
+      for (pathIndexInGroup = 0; pathIndexInGroup < pathsInGroup.length; pathIndexInGroup++) {
+        path = pathsInGroup[pathIndexInGroup];
+        for (objectKey in descriptionData){
+          if (descriptionData.hasOwnProperty(objectKey)) {
+            path.setAttribute("data-" + objectKey, descriptionData[objectKey]);
+          }
+        }
+      }
+    }
+  }
+
+  pathsInGroup = this.el.querySelectorAll('path');
+
+  for (pathIndex = 0; pathIndex < pathsInGroup.length; pathIndex++) {
+    path = pathsInGroup[pathIndex];
     pathObj = {
       el: path,
       length: Math.ceil(path.getTotalLength())
@@ -272,19 +292,19 @@ Vivus.prototype.mapping = function () {
     if (this.isIE) {
       pathObj.length += this.dashGap;
     }
-    this.renderPath(i);
+    this.renderPath(pathIndex);
   }
 
   totalLength = totalLength === 0 ? 1 : totalLength;
   this.delay = this.delay === null ? this.duration / 3 : this.delay;
-  this.delayUnit = this.delay / (paths.length > 1 ? paths.length - 1 : 1);
+  this.delayUnit = this.delay / (pathsInGroup.length > 1 ? pathsInGroup.length - 1 : 1);
 
-  for (i = 0; i < this.map.length; i++) {
-    pathObj = this.map[i];
+  for (groupIndex = 0; groupIndex < this.map.length; groupIndex++) {
+    pathObj = this.map[groupIndex];
 
     switch (this.type) {
     case 'delayed':
-      pathObj.startAt = this.delayUnit * i;
+      pathObj.startAt = this.delayUnit * groupIndex;
       pathObj.duration = this.duration - this.delay;
       break;
 
@@ -299,7 +319,7 @@ Vivus.prototype.mapping = function () {
       break;
 
     case 'scenario-sync':
-      path = paths[i];
+      path = pathsInGroup[groupIndex];
       pAttrs = this.parseAttr(path);
       pathObj.startAt = timePoint + (parsePositiveInt(pAttrs['data-delay'], this.delayUnit) || 0);
       pathObj.duration = parsePositiveInt(pAttrs['data-duration'], this.duration);
@@ -308,7 +328,7 @@ Vivus.prototype.mapping = function () {
       break;
 
     case 'scenario':
-      path = paths[i];
+      path = pathsInGroup[groupIndex];
       pAttrs = this.parseAttr(path);
       pathObj.startAt = parsePositiveInt(pAttrs['data-start'], this.delayUnit) || 0;
       pathObj.duration = parsePositiveInt(pAttrs['data-duration'], this.duration);
