@@ -401,6 +401,7 @@ Vivus.prototype.trace = function () {
     if (path.progress !== progress) {
       path.progress = progress;
       path.el.style.strokeDashoffset = Math.floor(path.length * (1 - progress));
+      path.el.style.fillOpacity = progress;
       this.renderPath(i);
     }
   }
