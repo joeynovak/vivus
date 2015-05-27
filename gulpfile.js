@@ -77,3 +77,18 @@ gulp.task('develop', function () {
     gulp.run('test');
   });
 });
+
+/**
+ * develop
+ * Task to develop, it run a watch which pass JShint and build
+ * the final scripts.
+ *
+ */
+gulp.task('develop-quick', function () {
+    gulp.watch('./src/*', function () {
+        gulp.run('distrib');
+    });
+    gulp.watch('./test/**/*.spec.js', function () {
+        gulp.run('test');
+    });
+});
